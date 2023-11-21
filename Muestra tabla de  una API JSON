@@ -1,0 +1,51 @@
+<?php
+/**
+ * Plugin Name: Mostrar Tabla de Usuarios desde JSONPlaceholder
+ * Plugin URI: https://tusitio.com
+ * Description: Muestra una tabla de usuarios desde la API JSONPlaceholder en WordPress.
+ * Version: 1.0.0
+ * Author: Andres
+ * Author URI: https://tusitio.com
+ * License: GPL2
+ */
+
+// Agrega un shortcode llamado "mostrar_tabla_usuarios".
+add_shortcode( 'mostrar_tabla_usuarios', 'mostrar_tabla_usuarios_func' );
+
+// Función que se ejecutará cuando se llame al shortcode.
+function mostrar_tabla_usuarios_func() {
+    // URL de la API JSONPlaceholder para obtener datos de usuarios.
+    $api_url = 'https://jsonplaceholder.typicode.com/users';
+
+    // Realiza una solicitud GET a la API JSONPlaceholder.
+    $response = wp_remote_get( $api_url );
+
+    // Verifica si la solicitud fue exitosa.
+    if ( ! is_wp_error( $response ) && wp_remote_retrieve_response_code( $response ) === 200 ) {
+        // Convierte la respuesta JSON a un array asociativo.
+        $data = json_decode( wp_remote_retrieve_body( $response ), true );
+
+        // Verifica si hay datos antes de construir la tabla.
+        if ( ! empty( $data ) && is_array( $data ) ) {
+            // Construye la tabla con los datos de usuarios.
+            $table_html = '<table>';
+            $table_html .= '<tr><th>ID</th><th>Nombre</th><th>Email</th><th>Empresa</th></tr>';
+            foreach ( $data as $user ) {
+                $table_html .= '<tr>';
+                $table_html .= '<td>' . esc_html( $user['id'] ) . '</td>';
+                $table_html .= '<td>' . esc_html( $user['name'] ) . '</td>';
+                $table_html .= '<td>' . esc_html( $user['email'] ) . '</td>';
+                $table_html .= '<td>' . esc_html( $user['company']['name'] ) . '</td>';
+                $table_html .= '</tr>';
+            }
+            $table_html .= '</table>';
+
+            return $table_html;
+        } else {
+            return 'No hay datos de usuarios disponibles.';
+        }
+    } else {
+        // Maneja el caso en que la solicitud no fue exitosa.
+        return 'Error al consultar la API.';
+    }
+}
