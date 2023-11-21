@@ -1,11 +1,11 @@
 <?php
 /**
  * Plugin Name: Mostrar Tabla de Usuarios desde JSONPlaceholder
- * Plugin URI: https://tusitio.com
+ * Plugin URI: https://github.com/AndresMaitaMedina/pluginsWP/blob/main/Muestra%20tabla%20de%20%20una%20API%20JSON
  * Description: Muestra una tabla de usuarios desde la API JSONPlaceholder en WordPress.
  * Version: 1.0.0
  * Author: Andres
- * Author URI: https://tusitio.com
+ * Author URI: https://github.com/AndresMaitaMedina/pluginsWP
  * License: GPL2
  */
 
