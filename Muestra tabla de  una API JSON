@@ -28,14 +28,34 @@ function mostrar_tabla_usuarios_func() {
         // Verifica si hay datos antes de construir la tabla.
         if ( ! empty( $data ) && is_array( $data ) ) {
             // Construye la tabla con los datos de usuarios.
-            $table_html = '<table>';
-            $table_html .= '<tr><th>ID</th><th>Nombre</th><th>Email</th><th>Empresa</th></tr>';
+            $table_html = '<style>
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-bottom: 20px;
+                }
+                th, td {
+                    border: 1px solid #ddd;
+                    padding: 8px;
+                    text-align: left;
+                }
+                th {
+                    background-color: #f2f2f2;
+                }
+            </style>';
+
+            $table_html .= '<table>';
+            $table_html .= '<thead><tr><th>ID</th><th>Nombre</th><th>Email</th><th>Empresa</th><th>Eslogan</th><th>Telefono</th><th>Ciudad</th><th>Codigo postal</th></tr></thead>';
             foreach ( $data as $user ) {
                 $table_html .= '<tr>';
                 $table_html .= '<td>' . esc_html( $user['id'] ) . '</td>';
                 $table_html .= '<td>' . esc_html( $user['name'] ) . '</td>';
                 $table_html .= '<td>' . esc_html( $user['email'] ) . '</td>';
                 $table_html .= '<td>' . esc_html( $user['company']['name'] ) . '</td>';
+                $table_html .= '<td>' . esc_html( $user['company']['catchPhrase'] ) . '</td>';
+                $table_html .= '<td>' . esc_html( $user['phone']) . '</td>';
+                $table_html .= '<td>' . esc_html( $user['address']['city']) . '</td>';
+                $table_html .= '<td>' . esc_html( $user['address']['zipcode']) . '</td>';
                 $table_html .= '</tr>';
             }
             $table_html .= '</table>';
