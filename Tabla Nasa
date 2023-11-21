@@ -1,0 +1,70 @@
+<?php
+/**
+ * Plugin Name: Mostrar Tabla de Usuarios desde JSONPlaceholder
+ * Plugin URI: https://github.com/AndresMaitaMedina/pluginsWP/blob/main/Muestra%20tabla%20de%20%20una%20API%20JSON
+ * Description: Muestra una tabla de usuarios desde la API JSONPlaceholder en WordPress.
+ * Version: 1.0.0
+ * Author: Andres
+ * Author URI: https://github.com/AndresMaitaMedina/pluginsWP
+ * License: GPL2
+ */
+
+// Agrega un shortcode llamado "mostrar_tabla_usuarios".
+add_shortcode( 'mostrar_info_planetas', 'mostrar_info_planetas_func' );
+
+// Función que se ejecutará cuando se llame al shortcode.
+function mostrar_info_planetas_func() {
+    // URL de la API de la NASA para obtener datos sobre planetas.
+    $api_url = 'https://api.le-systeme-solaire.net/rest/bodies/';
+
+    // Realiza una solicitud GET a la API de la NASA.
+    $response = wp_remote_get( $api_url );
+
+    // Verifica si la solicitud fue exitosa.
+    if ( ! is_wp_error( $response ) && wp_remote_retrieve_response_code( $response ) === 200 ) {
+        // Convierte la respuesta JSON a un array asociativo.
+        $data = json_decode( wp_remote_retrieve_body( $response ), true );
+
+        // Verifica si hay datos antes de construir la tabla.
+        if ( ! empty( $data ) && is_array( $data ) ) {
+            // Construye la tabla con los datos de los planetas.
+            $table_html = '<style>
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-bottom: 20px;
+                }
+                th, td {
+                    border: 1px solid #ddd;
+                    padding: 8px;
+                    text-align: left;
+                }
+                th {
+                    background-color: #f2f2f2;
+                }
+            </style>';
+
+            $table_html .= '<table>';
+            $table_html .= '<thead><tr><th>Nombre</th><th>Diámetro (km)</th><th>Masa (kg)</th><th>Imagen</th></tr></thead>';
+            foreach ( $data as $planet ) {
+                $table_html .= '<tr>';
+                $table_html .= '<td>' . esc_html( $planet['englishName'] ) . '</td>';
+                $table_html .= '<td>' . esc_html( $planet['meanRadius']*2 ) . '</td>';
+                $table_html .= '<td>' . esc_html( $planet['mass']['massValue'] ) . ' ' . esc_html( $planet['mass']['massExponent'] ) . '</td>';
+                $table_html .= '<td><img src="' . esc_url( $planet['moons'][0]['image'] ) . '" alt="' . esc_attr( $planet['englishName'] ) . '" style="max-width: 100px;"></td>';
+                $table_html .= '</tr>';
+            }
+            $table_html .= '</table>';
+
+            return $table_html;
+        } else {
+            return 'No hay datos de planetas disponibles.';
+        }
+    } else {
+        // Maneja el caso en que la solicitud no fue exitosa.
+        return 'Error al consultar la API de la NASA.';
+    }
+}
+
+// Agrega un shortcode llamado "mostrar_info_planetas".
+add_shortcode( 'mostrar_info_planetas', 'mostrar_info_planetas_func' );
