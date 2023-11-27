@@ -1,11 +1,11 @@
 <?php
 /**
  * Plugin Name: Mostrar Tabla de Grupos desde Spring Boot
- * Plugin URI: https://tudominio.com/plugin-spring-boot
+ * Plugin URI: https://github.com/AndresMaitaMedina/pluginsWP/edit/main/Springboot%20local
  * Description: Muestra una tabla de grupos desde tu aplicación Spring Boot en WordPress.
  * Version: 1.0.0
  * Author: Tu Nombre
- * Author URI: https://tudominio.com
+ * Author URI: https://github.com/AndresMaitaMedina/pluginsWP
  * License: GPL2
  */
 
