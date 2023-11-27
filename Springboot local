@@ -1,0 +1,74 @@
+<?php
+/**
+ * Plugin Name: Mostrar Tabla de Grupos desde Spring Boot
+ * Plugin URI: https://tudominio.com/plugin-spring-boot
+ * Description: Muestra una tabla de grupos desde tu aplicación Spring Boot en WordPress.
+ * Version: 1.0.0
+ * Author: Tu Nombre
+ * Author URI: https://tudominio.com
+ * License: GPL2
+ */
+
+// Agrega un shortcode llamado "mostrar_tabla_grupos".
+add_shortcode( 'mostrar_tabla_grupos', 'mostrar_tabla_grupos_func' );
+
+// Función que se ejecutará cuando se llame al shortcode.
+function mostrar_tabla_grupos_func() {
+    // URL de tu aplicación Spring Boot para obtener datos de grupos.
+    $api_url = 'http://localhost:8081/Grupos/GruposPendientes';
+
+    // Realiza una solicitud GET a tu aplicación Spring Boot.
+    $response = wp_remote_get( $api_url );
+
+    // Verifica si la solicitud fue exitosa.
+    if ( ! is_wp_error( $response ) && wp_remote_retrieve_response_code( $response ) === 200 ) {
+        // Convierte la respuesta JSON a un array asociativo.
+        $data = json_decode( wp_remote_retrieve_body( $response ), true );
+
+        // Verifica si hay datos antes de construir la tabla.
+        if ( ! empty( $data ) && is_array( $data ) ) {
+            // Construye la tabla con los datos de grupos.
+            $table_html = '<style>
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-bottom: 20px;
+                }
+                th, td {
+                    border: 1px solid #ddd;
+                    padding: 8px;
+                    text-align: left;
+                }
+                th {
+                    background-color: #33AFFF;
+                }
+            </style>';
+
+            $table_html .= '<table>';
+            $table_html .= '<thead><tr><th>ID</th><th>Código</th><th>Fecha Inicio</th><th>Fecha Fin</th><th>Vacantes</th><th>Vacantes Disponibles</th><th>Estado</th><th>Profesor</th><th>Nivel</th></tr></thead>';
+            
+            foreach ( $data as $grupo ) {
+                $table_html .= '<tr>';
+                $table_html .= '<td>' . esc_html( $grupo['id'] ) . '</td>';
+                $table_html .= '<td>' . esc_html( $grupo['cod'] ) . '</td>';
+                $table_html .= '<td>' . esc_html( $grupo['fchinicio'] ) . '</td>';
+                $table_html .= '<td>' . esc_html( $grupo['fchfin'] ) . '</td>';
+                $table_html .= '<td>' . esc_html( $grupo['vacantes'] ) . '</td>';
+                $table_html .= '<td>' . esc_html( $grupo['vacantesdisp'] ) . '</td>';
+                $table_html .= '<td>' . esc_html( $grupo['gruactaestado'] ) . '</td>';
+                $table_html .= '<td>' . esc_html( $grupo['provcnombre'] . ' ' . $grupo['provcapellido'] ) . '</td>';
+                $table_html .= '<td>' . esc_html( $grupo['nivelnombre'] ) . '</td>';
+                $table_html .= '</tr>';
+            }
+
+            $table_html .= '</table>';
+
+            return $table_html;
+        } else {
+            return 'No hay datos de grupos disponibles.';
+        }
+    } else {
+        // Maneja el caso en que la solicitud no fue exitosa.
+        return 'Error al consultar la API de Spring Boot.';
+    }
+}
