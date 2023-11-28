@@ -1,0 +1,164 @@
+<?php
+/**
+ * Plugin Name: Mostrar Tabla de Grupos desde Spring Boot
+ * Plugin URI: https://github.com/AndresMaitaMedina/pluginsWP/edit/main/Springboot%20local
+ * Description: Muestra una tabla de grupos desde tu aplicación Spring Boot en WordPress.
+ * Version: 1.0.0
+ * Author: Tu Nombre
+ * Author URI: https://github.com/AndresMaitaMedina/pluginsWP
+ * License: GPL2
+ */
+
+// Agrega un shortcode llamado "mostrar_tabla_grupos".
+add_shortcode('mostrar_tabla_grupos', 'mostrar_tabla_grupos_func');
+
+// Función que se ejecutará cuando se llame al shortcode.
+function mostrar_tabla_grupos_func()
+{
+    // Número de registros por bloque.
+    $registros_por_bloque = 20;
+
+    // Página actual (por defecto es 1).
+    $pagina_actual = isset($_GET['pagina']) ? max(1, intval($_GET['pagina'])) : 1;
+
+    // Calcula el índice de inicio para la página actual.
+    $indice_inicio = ($pagina_actual - 1) * $registros_por_bloque;
+
+    // Número máximo de botones de paginación que se mostrarán.
+    $max_paginas_mostradas = 5;
+
+    // URL de tu aplicación Spring Boot para obtener datos de grupos.
+    $api_url = 'http://localhost:8081/Grupos/GruposPendientes';
+
+    // Realiza una solicitud GET a tu aplicación Spring Boot.
+    $response = wp_remote_get($api_url);
+
+    // Verifica si la solicitud fue exitosa.
+    if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) === 200) {
+        // Convierte la respuesta JSON a un array asociativo.
+        $data = json_decode(wp_remote_retrieve_body($response), true);
+
+        // Verifica si hay datos antes de construir la tabla.
+        if (!empty($data) && is_array($data)) {
+            /// Obtener los registros para la página actual.
+            $data_pagina_actual = array_slice($data, $indice_inicio, $registros_por_bloque);
+
+            // Calcula el número total de páginas.
+            $total_paginas = ceil(count($data) / $registros_por_bloque);
+
+            // Calcula el rango de botones a mostrar.
+            $rango_inicio = max(1, $pagina_actual - floor($max_paginas_mostradas / 2));
+            $rango_fin = min($total_paginas, $rango_inicio + $max_paginas_mostradas - 1);
+
+            // Construir la tabla con los datos de grupos.
+            $table_html = '<style>
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-bottom: 20px;
+                    text-align: center; /* Añadido para centrar el contenido */
+                }
+                th, td {
+                    border: 1px solid #8a8585;
+                    padding: 8px;
+                    text-align: center; /* Añadido para centrar el contenido */
+                }
+                th {
+                    background-color: #050b30;
+                    color: aliceblue;
+                }
+                .pagination {
+                    margin-top: 10px;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                }
+                .pagination a {
+                    padding: 8px;
+                    margin: 0 5px;
+                    border: 1px solid #ddd;
+                    text-decoration: none;
+                    color: #333;
+                    background-color: #f8f8f8;
+                    border-radius: 4px;
+                }
+                .pagination a:hover {
+                    background-color: #8A8585FF;
+                }
+            </style>';
+
+            $table_html .= '<table>';
+            $table_html .= '<thead><tr><th>ID</th><th>Código</th><th>Fecha Inicio</th><th>Fecha Fin</th><th>Vacantes</th><th>Vacantes Disponibles</th><th>DNI</th><th>Profesor</th><th>Nivel</th></tr></thead>';
+
+            foreach ($data_pagina_actual as $grupo) {
+                $table_html .= '<tr>';
+                $table_html .= '<td>' . esc_html($grupo['id']) . '</td>';
+                $table_html .= '<td>' . esc_html($grupo['cod']) . '</td>';
+                $table_html .= '<td>' . esc_html($grupo['fchinicio']) . '</td>';
+                $table_html .= '<td>' . esc_html($grupo['fchfin']) . '</td>';
+                $table_html .= '<td>' . esc_html($grupo['vacantes']) . '</td>';
+                $table_html .= '<td>' . esc_html($grupo['vacantesdisp']) . '</td>';
+                $table_html .= '<td>' . esc_html($grupo['provcdocumento']) . '</td>';
+                $table_html .= '<td>' . esc_html($grupo['provcnombre'] . ' ' . $grupo['provcapellido']) . '</td>';
+                $table_html .= '<td>' . esc_html($grupo['nivelnombre']) . '</td>';
+                $table_html .= '</tr>';
+            }
+
+            $table_html .= '</table>';
+
+
+            // Agregar enlaces de paginación.
+            if ($total_paginas > 1) {
+                $table_html .= '<div class="pagination" id="pagination-container">';
+
+                // Botones de dirección hacia la izquierda.
+                if ($pagina_actual > 1) {
+                    $table_html .= '<a class="pagination-link" style="display:inline-block;padding:8px;margin:0 5px;border:1px solid #ddd;text-decoration:none;color:#333;background-color:#f8f8f8;border-radius:4px;cursor:pointer;" href="' . esc_url(add_query_arg('pagina', $pagina_actual - 1)) . '" onclick="return cambiarPagina(' . ($pagina_actual - 1) . ');">« Anterior</a>';
+                } else {
+                    $table_html .= '<span class="pagination-link inactive" style="display:inline-block;padding:8px;margin:0 5px;border:1px solid #ddd;text-decoration:none;color:#999;background-color:#f8f8f8;border-radius:4px;cursor:default;">« Anterior</span>';
+                }
+
+                // Botones numéricos y puntos suspensivos.
+                for ($i = $rango_inicio; $i <= $rango_fin; $i++) {
+                    if ($i == $pagina_actual) {
+                        $table_html .= '<span class="pagination-link current" style="display:inline-block;padding:8px;margin:0 5px;border:1px solid #ddd;text-decoration:none;color:#333;background-color:#f8f8f8;border-radius:4px;cursor:pointer;">' . $i . '</span>';
+                    } else {
+                        $table_html .= '<a class="pagination-link" style="display:inline-block;padding:8px;margin:0 5px;border:1px solid #ddd;text-decoration:none;color:#333;background-color:#f8f8f8;border-radius:4px;cursor:pointer;" href="' . esc_url(add_query_arg('pagina', $i)) . '" onclick="return cambiarPagina(' . $i . ');">' . $i . '</a>';
+                    }
+                }
+
+                if ($rango_fin < $total_paginas) {
+                    $table_html .= '<span class="pagination-link inactive" style="display:inline-block;padding:8px;margin:0 5px;border:1px solid #ddd;text-decoration:none;color:#999;background-color:#f8f8f8;border-radius:4px;cursor:default;">&hellip;</span>';
+                }
+
+                // Agrega el botón para el último registro disponible.
+                $table_html .= '<a class="pagination-link" style="display:inline-block;padding:8px;margin:0 5px;border:1px solid #ddd;text-decoration:none;color:#333;background-color:#f8f8f8;border-radius:4px;cursor:pointer;" href="' . esc_url(add_query_arg('pagina', $total_paginas)) . '" onclick="return cambiarPagina(' . $total_paginas . ');">' . $total_paginas . '</a>';
+
+                // Botones de dirección hacia la derecha.
+                if ($pagina_actual < $total_paginas) {
+                    $table_html .= '<a class="pagination-link" style="display:inline-block;padding:8px;margin:0 5px;border:1px solid #ddd;text-decoration:none;color:#333;background-color:#f8f8f8;border-radius:4px;cursor:pointer;" href="' . esc_url(add_query_arg('pagina', $pagina_actual + 1)) . '" onclick="return cambiarPagina(' . ($pagina_actual + 1) . ');">Siguiente »</a>';
+                } else {
+                    $table_html .= '<span class="pagination-link inactive" style="display:inline-block;padding:8px;margin:0 5px;border:1px solid #ddd;text-decoration:none;color:#999;background-color:#f8f8f8;border-radius:4px;cursor:default;">Siguiente »</span>';
+                }
+
+                $table_html .= '</div>';
+            }
+
+
+            // Agregar el script JavaScript.
+                        $table_html .= '<script>
+                function cambiarPagina(pagina) {
+                    document.getElementById("pagination-container").scrollIntoView({ behavior: "smooth", block: "start" });
+                    return true;
+                }
+            </script>';
+
+            return $table_html;
+        } else {
+            return 'No hay datos de grupos disponibles.';
+        }
+    } else {
+        // Manejar el caso en que la solicitud no fue exitosa.
+        return 'Error al consultar la API de Spring Boot.';
+    }
+}
