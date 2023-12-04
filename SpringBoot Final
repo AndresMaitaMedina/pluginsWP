@@ -40,7 +40,7 @@ function mostrar_tabla_grupos_func()
 
         // Verifica si hay datos antes de construir la tabla.
         if (!empty($data) && is_array($data)) {
-            /// Obtener los registros para la página actual.
+            // Obtener los registros para la página actual.
             $data_pagina_actual = array_slice($data, $indice_inicio, $registros_por_bloque);
 
             // Calcula el número total de páginas.
@@ -50,12 +50,10 @@ function mostrar_tabla_grupos_func()
             $rango_inicio = max(1, $pagina_actual - floor($max_paginas_mostradas / 2));
             $rango_fin = min($total_paginas, $rango_inicio + $max_paginas_mostradas - 1);
 
-// Ajuste para mantener visible el botón con el número 1.
+            // Ajuste para mantener visible el botón con el número 1.
             if ($rango_inicio > 1 && $total_paginas > $max_paginas_mostradas) {
                 $rango_inicio = max(1, $rango_fin - $max_paginas_mostradas + 1);
             }
-
-
 
             // Construir la tabla con los datos de grupos.
             $table_html = '<style>
@@ -74,23 +72,29 @@ function mostrar_tabla_grupos_func()
                     background-color: #050b30;
                     color: aliceblue;
                 }
-                .pagination {
+                 .pagination {
                     margin-top: 10px;
                     display: flex;
                     justify-content: center;
                     align-items: center;
+                    flex-wrap: wrap;
                 }
                 .pagination a {
                     padding: 8px;
-                    margin: 0 5px;
+                    margin: 5px;
                     border: 1px solid #ddd;
                     text-decoration: none;
                     color: #333;
                     background-color: #f8f8f8;
                     border-radius: 4px;
+                    text-align: center;
+                    display: inline-block;
                 }
                 .pagination a:hover {
                     background-color: #8A8585FF;
+                }
+                .pagination .pagination-link {
+                    white-space: nowrap; /* Evitar que los elementos se desplacen a la siguiente línea */
                 }
             </style>';
 
@@ -113,102 +117,53 @@ function mostrar_tabla_grupos_func()
 
             $table_html .= '</table>';
 
-
             // Agregar enlaces de paginación.
             if ($total_paginas > 1) {
                 $table_html .= '<div class="pagination" id="pagination-container">';
 
-                // Ajuste para mantener visible el botón con el número 1.
-                if ($rango_inicio > 1 && $total_paginas > $max_paginas_mostradas) {
-                    $rango_inicio = max(1, $rango_fin - $max_paginas_mostradas + 1);
-                }
-
-// Construir la tabla con los datos de grupos.
-                $table_html .= '<div class="pagination" id="pagination-container">';
-
-// Botón para la primera página.
+                // Botón para la primera página.
                 if ($pagina_actual > 1) {
                     $table_html .= '<a class="pagination-link" 
-                    style="display:inline-block;
-                    padding:8px;
-                    margin:0 5px;
-                    border:1px solid #becad4 ;
-                    text-decoration:none;
-                    color:aliceblue;
-                    background-color:#050b30;
-                    border-radius:4px;
-                    cursor:pointer;" href="' . esc_url(add_query_arg('pagina', $pagina_actual - 1)) . '" onclick="return cambiarPagina(' . ($pagina_actual - 1) . ');">« Anterior</a>';
+                        style="display:inline-block;
+                        padding:8px;
+                        margin:0 5px;
+                        border:1px solid #becad4 ;
+                        text-decoration:none;
+                        color:aliceblue;
+                        background-color:#050b30;
+                        border-radius:4px;
+                        cursor:pointer;" href="' . esc_url(add_query_arg('pagina', $pagina_actual - 1)) . '" onclick="return cambiarPagina(' . ($pagina_actual - 1) . ');">« Anterior</a>';
                 } else {
                     $table_html .= '<span class="pagination-link inactive" 
-                    style="display:inline-block;
-                    padding:8px;
-                    margin:0 5px;
-                    border:1px solid #becad4;
-                    text-decoration:none;
-                    color:#999;
-                    background-color:#050b30;
-                    border-radius:4px;
-                    cursor:default;">« Anterior</span>';
-                }
-
-                if ($rango_inicio > 1) {
-                    $table_html .= '<a class="pagination-link" 
-                    style="display:inline-block;
-                    padding:8px;
-                    margin:0 5px;
-                    border:1px solid #becad4;
-                    text-decoration:none;
-                    color:#333;
-                    background-color:#f8f8f8;
-                    border-radius:4px;
-                    cursor:pointer;
-                    " href="' . esc_url(add_query_arg('pagina', 1)) . '" onclick="return cambiarPagina(1);">1</a>';
-                }
-
-                // Resto de los botones de paginación.
-                                if ($rango_inicio > 2) {
-                                    $table_html .= '<span class="pagination-link inactive" 
-                        style="display:inline-block;
-                        padding:8px;margin:0 5px;
-                        border:1px solid #becad4;
-                        text-decoration:none;
-                        color:#999;
-                        background-color:#f8f8f8;
-                        border-radius:4px;
-                        cursor:default;
-                        ">&hellip;</span>';
-                                }
-
-                // Botones numéricos y puntos suspensivos.
-                                for ($i = $rango_inicio; $i <= $rango_fin; $i++) {
-                                    if ($i == $pagina_actual) {
-                                        $table_html .= '<span class="pagination-link current" 
                         style="display:inline-block;
                         padding:8px;
                         margin:0 5px;
                         border:1px solid #becad4;
                         text-decoration:none;
-                        color:white;
-                        background-color:#363B59;
-                        ;border-radius:4px;
-                        cursor:pointer;">' . $i . '</span>';
-                                    } else {
-                                        $table_html .= '<a class="pagination-link" 
+                        color:#999;
+                        background-color:#050b30;
+                        border-radius:4px;
+                        cursor:default;">« Anterior</span>';
+                }
+
+                // Si el rango de inicio es mayor que 1, agrega un botón para la primera página.
+                if ($rango_inicio > 1) {
+                    $table_html .= '<a class="pagination-link" 
                         style="display:inline-block;
-                        padding:8px;margin:0 5px;
+                        padding:8px;
+                        margin:0 5px;
                         border:1px solid #becad4;
                         text-decoration:none;
                         color:#333;
                         background-color:#f8f8f8;
                         border-radius:4px;
                         cursor:pointer;
-                        " href="' . esc_url(add_query_arg('pagina', $i)) . '" onclick="return cambiarPagina(' . $i . ');">' . $i . '</a>';
-                                    }
-                                }
+                        " href="' . esc_url(add_query_arg('pagina', 1)) . '" onclick="return cambiarPagina(1);">1</a>';
+                }
 
                 // Resto de los botones de paginación.
-                                if ($rango_fin < $total_paginas) {
-                                    $table_html .= '<span class="pagination-link inactive" 
+                if ($rango_inicio > 2) {
+                    $table_html .= '<span class="pagination-link inactive" 
                         style="display:inline-block;
                         padding:8px;margin:0 5px;
                         border:1px solid #becad4;
@@ -218,22 +173,65 @@ function mostrar_tabla_grupos_func()
                         border-radius:4px;
                         cursor:default;
                         ">&hellip;</span>';
-                                }
+                }
+
+                // Botones numéricos y puntos suspensivos.
+                for ($i = $rango_inicio; $i <= $rango_fin; $i++) {
+                    if ($i == $pagina_actual) {
+                        $table_html .= '<span class="pagination-link current" 
+                            style="display:inline-block;
+                            padding:8px;
+                            margin:0 5px;
+                            border:1px solid #becad4;
+                            text-decoration:none;
+                            color:white;
+                            background-color:#363B59;
+                            ;border-radius:4px;
+                            cursor:pointer;">' . $i . '</span>';
+                    } else {
+                        $table_html .= '<a class="pagination-link" 
+                            style="display:inline-block;
+                            padding:8px;margin:0 5px;
+                            border:1px solid #becad4;
+                            text-decoration:none;
+                            color:#333;
+                            background-color:#f8f8f8;
+                            border-radius:4px;
+                            cursor:pointer;
+                            " href="' . esc_url(add_query_arg('pagina', $i)) . '" onclick="return cambiarPagina(' . $i . ');">' . $i . '</a>';
+                    }
+                }
+
+                // Resto de los botones de paginación.
+                if ($rango_fin < $total_paginas) {
+                    $table_html .= '<span class="pagination-link inactive" 
+                        style="display:inline-block;
+                        padding:8px;margin:0 5px;
+                        border:1px solid #becad4;
+                        text-decoration:none;
+                        color:#999;
+                        background-color:#f8f8f8;
+                        border-radius:4px;
+                        cursor:default;
+                        ">&hellip;</span>';
+                }
 
                 // Agrega el botón para el último registro disponible.
-                                $table_html .= '<a class="pagination-link" 
-                    style="display:inline-block;
-                    padding:8px;
-                    margin:0 5px;
-                    border:1px solid #becad4;
-                    text-decoration:none;
-                    color:#333;
-                    background-color:#f8f8f8;
-                    border-radius:4px;
-                    cursor:pointer;" href="' . esc_url(add_query_arg('pagina', $total_paginas)) . '" onclick="return cambiarPagina(' . $total_paginas . ');">' . $total_paginas . '</a>';
+                if ($rango_fin < $total_paginas - 1) {
+                    $table_html .= '<a class="pagination-link" 
+                        style="display:inline-block;
+                        padding:8px;
+                        margin:0 5px;
+                        border:1px solid #becad4;
+                        text-decoration:none;
+                        color:#333;
+                        background-color:#f8f8f8;
+                        border-radius:4px;
+                        cursor:pointer;" href="' . esc_url(add_query_arg('pagina', $total_paginas)) . '" onclick="return cambiarPagina(' . $total_paginas . ');">' . $total_paginas . '</a>';
+                }
 
                 // Botones de dirección hacia la derecha.
-                                $table_html .= '<a class="pagination-link" 
+                $table_html .= '<a class="pagination-link" 
                     style="display:inline-block;
                     padding:8px;
                     margin:0 5px;
@@ -244,9 +242,13 @@ function mostrar_tabla_grupos_func()
                     border-radius:4px;
                     cursor:pointer;
                     " href="' . esc_url(add_query_arg('pagina', $pagina_actual + 1)) . '" onclick="return cambiarPagina(' . ($pagina_actual + 1) . ');">Siguiente »</a>';
+
+                // Cierre del bloque de paginación.
+                $table_html .= '</div>';
             }
+
             // Agregar el script JavaScript.
-                        $table_html .= '<script>
+            $table_html .= '<script>
                 function cambiarPagina(pagina) {
                     document.getElementById("pagination-container").scrollIntoView({ behavior: "smooth", block: "start" });
                     return true;
